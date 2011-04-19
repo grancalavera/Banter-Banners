@@ -3,17 +3,9 @@
 {% block page_content %}
 <h1>Send some banter</h1>
 <form action="{{ form_action }}" method="post" accept-charset="utf-8">
-<div>
-<select name="banter_team" id="banter_team">
-    <option value="">Select a team to banter</option>
-    {% for team in teams %}
-    <option value="{{ team.name }}">{{ team.name }}</option>
-    {% endfor %}
-</select>
-</div>
-<div>
-<textarea name="banter" rows="8" cols="50"></textarea>
-</div>
-<p><input type="submit" value="Send"></p>
+<table>
+{{ form }}
+<tr><td colspan="2"><input type="submit" value="Send"></td></tr>
+</table>
 </form>
 {% endblock %}

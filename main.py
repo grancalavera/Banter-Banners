@@ -73,11 +73,15 @@ class Banner(db.Model):
     team = db.ReferenceProperty(Team, required=True, collection_name='banners')
 
 
-class BannerForm(forms.Form):
+class CreateBannerForm(forms.Form):
+    TEAM_CHOICES = [('', 'Select One')]
+    TEAM_CHOICES.extend([(team.name, team.name) for team in Team.all()])
+    
     """
-    A Simple form to save a Banner
+    A Simple form to create a Banner
     """
-    pass
+    banter = forms.CharField(max_length = 140)
+    team = forms.ChoiceField(choices = TEAM_CHOICES)
     
     
 class MainHandler(webapp.RequestHandler):
@@ -98,7 +102,7 @@ class CreateBannerHandler(MainHandler):
     
     def get(self):
         data = {
-            'teams' : BanterTarget.all(),
+            'form' : CreateBannerForm(),
             'form_action' : '/save_banner',
         }
         
