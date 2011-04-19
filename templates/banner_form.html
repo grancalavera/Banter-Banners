@@ -5,7 +5,7 @@
 <form action="{{ form_action }}" method="{{ form_method }}" accept-charset="utf-8">
 
     <p>
-        <label for="id_team">Pick a Team: </label>
+        <label for="id_team">Send to: </label>
         {{form.team}}
         {% if form.team.errors %}
         <strong>
@@ -33,7 +33,6 @@
         {{form.copy}}
         
     </p>
-
 
     <p>
         <input type="submit" value="Send">

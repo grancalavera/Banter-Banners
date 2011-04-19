@@ -15,3 +15,9 @@ indexes:
   - name: author
   - name: created
     direction: desc
+
+- kind: Banner
+  properties:
+  - name: author_id
+  - name: created
+    direction: desc
