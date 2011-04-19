@@ -27,6 +27,6 @@ teams = [
 ]
 
 for team in teams:
-    t = Team(name=team)
+    t = Team(name=team, key_name=team)
     t.put()
     print 'Team with name \"%s\" created.' %t.name

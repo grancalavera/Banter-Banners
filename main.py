@@ -73,7 +73,7 @@ class Banner(db.Model):
     team = db.ReferenceProperty(Team, required=True, collection_name='banners')
 
 
-class CreateBannerForm(forms.Form):
+class BannerForm(forms.Form):
     """
     A Simple form to create a Banner
     """
@@ -98,7 +98,9 @@ class MainHandler(webapp.RequestHandler):
 
 
 class BannerFormHandler(MainHandler):
-    """Creates a new Banner model in the datastore"""
+    """
+    Creates a new Banner model in the datastore
+    """
     
     def render_form(self, form):
         data = {
@@ -109,14 +111,23 @@ class BannerFormHandler(MainHandler):
 
         self.render('banner_form.html', data)
     
+    def create_banner_from_form(self, form):
+        team = Team.get_by_key_name(form.cleaned_data['team'])
+        banner = Banner(
+            copy = form.cleaned_data['copy'],
+            team = team,
+            author = users.get_current_user()
+        ).put()
+        self.redirect('/')
+    
     def get(self):
-        self.render_form(CreateBannerForm())
+        self.render_form(BannerForm())
 
     def post(self):
-        form = CreateBannerForm(self.request)
+        form = BannerForm(self.request)
         
         if form.is_valid():
-            pass
+            self.create_banner_from_form(form)
         else:
             self.render_form(form)
 
