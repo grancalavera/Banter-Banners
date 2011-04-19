@@ -2,11 +2,42 @@
 
 {% block page_content %}
 <h1>Send some banter</h1>
-{% if error_message %}
-<p>{{ error_message }}</p>
-{% endif %}
 <form action="{{ form_action }}" method="{{ form_method }}" accept-charset="utf-8">
-{{ form.as_p }}
-<p><input type="submit" value="Send"></p>
+
+    <p>
+        <label for="id_team">Pick a Team: </label>
+        {{form.team}}
+        {% if form.team.errors %}
+        <strong>
+            {% for error in form.team.errors %}
+            {{ error }}
+            {% endfor %}
+        </strong>
+        {% endif %}
+    </p>
+
+    <p>
+        <label for="id_copy">Write some banter:</label>
+    </p>
+    
+    <p>
+        {% if form.copy.errors %}
+        <strong>
+            {% for error in form.copy.errors %}
+            {{ error }}
+            {% endfor %}
+        </strong>
+        {% endif %}
+    </p>
+    <p>
+        {{form.copy}}
+        
+    </p>
+
+
+    <p>
+        <input type="submit" value="Send">
+    </p>
+
 </form>
 {% endblock %}

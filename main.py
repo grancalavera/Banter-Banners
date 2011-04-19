@@ -81,9 +81,8 @@ class CreateBannerForm(forms.Form):
     TEAM_CHOICES = [('', 'Select One')]
     TEAM_CHOICES.extend([(team.name, team.name) for team in Team.all()])
     
-    copy = forms.CharField(max_length = 140, label='Banter')
     team = forms.ChoiceField(choices = TEAM_CHOICES)
-    
+    copy = forms.CharField(max_length = 140, label='Banter', widget=forms.Textarea)
     
 class MainHandler(webapp.RequestHandler):
     def get(self):
@@ -101,20 +100,17 @@ class MainHandler(webapp.RequestHandler):
 class BannerFormHandler(MainHandler):
     """Creates a new Banner model in the datastore"""
     
-    def render_form(self, render_with_errors = False):
+    def render_form(self, form):
         data = {
-            'form' : CreateBannerForm(),
+            'form' : form,
             'form_action' : '/create_banner',
             'form_method' : 'post'
         }
 
-        if render_with_errors:
-            data['error_message'] = 'Did you write some banter? Did you chose a team to banter?'
-
         self.render('banner_form.html', data)
     
     def get(self):
-        self.render_form()
+        self.render_form(CreateBannerForm())
 
     def post(self):
         form = CreateBannerForm(self.request)
@@ -122,7 +118,7 @@ class BannerFormHandler(MainHandler):
         if form.is_valid():
             pass
         else:
-            self.render_form(True)
+            self.render_form(form)
 
 
 def main():
