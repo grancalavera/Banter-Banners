@@ -98,33 +98,39 @@ class MainHandler(webapp.RequestHandler):
         self.response.out.write(template.render(path, template_values))
 
 
-class CreateBannerHandler(MainHandler):
+class BannerFormHandler(MainHandler):
     """Creates a new Banner model in the datastore"""
     
-    def get(self):
+    def render_form(self, render_with_errors = False):
         data = {
             'form' : CreateBannerForm(),
-            'form_action' : '/save_banner',
+            'form_action' : '/create_banner',
+            'form_method' : 'post'
         }
-        
-        self.render('create_banner.html', data)
 
+        if render_with_errors:
+            data['error_message'] = 'Did you write some banter? Did you chose a team to banter?'
 
-class SaveBannerHandler(MainHandler):
-    """Saves a banner in the datastore"""
+        self.render('banner_form.html', data)
+    
+    def get(self):
+        self.render_form()
+
     def post(self):
         form = CreateBannerForm(self.request)
-        logging.info(form.is_valid())
         
-        self.redirect('/')
+        if form.is_valid():
+            pass
+        else:
+            self.render_form(True)
+
 
 def main():
     logging.getLogger().setLevel(logging.DEBUG)
     
     paths = [
         ('/', MainHandler),
-        ('/create_banner', CreateBannerHandler),
-        ('/save_banner', SaveBannerHandler),
+        ('/create_banner', BannerFormHandler),
     ];
     
     application = webapp.WSGIApplication(paths, debug=True)

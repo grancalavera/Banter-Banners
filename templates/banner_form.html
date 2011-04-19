@@ -2,7 +2,10 @@
 
 {% block page_content %}
 <h1>Send some banter</h1>
-<form action="{{ form_action }}" method="post" accept-charset="utf-8">
+{% if error_message %}
+<p>{{ error_message }}</p>
+{% endif %}
+<form action="{{ form_action }}" method="{{ form_method }}" accept-charset="utf-8">
 {{ form.as_p }}
 <p><input type="submit" value="Send"></p>
 </form>
