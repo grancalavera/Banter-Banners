@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import logging
 import os
+import random
 
 # django setup
 os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'
@@ -54,7 +55,16 @@ def get_random_banner_for_team(team):
     remaining.
     Returns None if there are no banners with impressions remaining
     """
-    pass
+    logging.info('Will send you a banner from the %s team' %team.name)
+    banners = team.banners.filter('impressions >', 0)
+    count = banners.count()
+    
+    banner = None
+    
+    if count:
+        banner = banners[random.randint(0, count -1)]
+    
+    return banner
 
 
 def handle_queue_empty_for_team(team):

@@ -21,3 +21,8 @@ indexes:
   - name: author_id
   - name: created
     direction: desc
+
+- kind: Banner
+  properties:
+  - name: team
+  - name: impressions
