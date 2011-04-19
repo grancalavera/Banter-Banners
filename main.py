@@ -1,18 +1,26 @@
 #!/usr/bin/env python
 import logging
 import os
+
+# django setup
 os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'
 from google.appengine.dist import use_library
 use_library('django', '1.2')
+from google.appengine.ext.webapp import template
+# end django setup
 
-from google.appengine.ext.webapp import template # keep this import first
 from django import forms
-
 from google.appengine.api import users
 from google.appengine.ext import db
 from google.appengine.ext import webapp
 from google.appengine.ext.db import djangoforms
 from google.appengine.ext.webapp import util
+
+
+def get_banners_for_current_user():
+    banners = Banner.all().order('-created')
+    return banners.filter('author = ', users.get_current_user())
+
 
 def get_default_template_values(dest_url=None): #redirect to current page
     """
@@ -22,20 +30,20 @@ def get_default_template_values(dest_url=None): #redirect to current page
     values['user'] = users.get_current_user()
     values['login_url'] = users.create_login_url(dest_url or '/')
     values['logout_url'] = users.create_logout_url(dest_url or '/')
-    
+
     return values
 
 def serve_banner():
     """
-    Serves a banner. Takes care of recording the banner impression and also 
+    Serves a banner. Takes care of recording the banner impression and also
     of sending placeholder content when there are no more banners
     """
     pass
 
 def get_random_banner():
-    
+
     """
-    Returns a random bannner from the banners that still have impressions 
+    Returns a random bannner from the banners that still have impressions
     remaining.
     Returns None if there are no banners with impressions remaining
     """
@@ -71,6 +79,7 @@ class Banner(db.Model):
     copy = db.StringProperty(required=True)
     author = db.UserProperty(required=True)
     team = db.ReferenceProperty(Team, required=True, collection_name='banners')
+    created = db.DateTimeProperty(auto_now_add = True)
 
 
 class BannerForm(forms.Form):
@@ -80,14 +89,21 @@ class BannerForm(forms.Form):
 
     TEAM_CHOICES = [('', 'Select One')]
     TEAM_CHOICES.extend([(team.name, team.name) for team in Team.all()])
-    
+
     team = forms.ChoiceField(choices = TEAM_CHOICES)
     copy = forms.CharField(max_length = 140, label='Banter', widget=forms.Textarea)
-    
+
+
 class MainHandler(webapp.RequestHandler):
     def get(self):
-        self.render('index.html', {'create_banner_url' : '/create_banner'})
-    
+        data = {}
+        data['create_banner_url'] = '/create_banner'
+        
+        if (users.get_current_user()):
+            data['banners'] = get_banners_for_current_user()
+        
+        self.render('index.html', data)
+
     def render(self, template_file, template_values):
         """
         Convenience method to render templates
@@ -101,7 +117,7 @@ class BannerFormHandler(MainHandler):
     """
     Creates a new Banner model in the datastore
     """
-    
+
     def render_form(self, form):
         data = {
             'form' : form,
@@ -110,7 +126,7 @@ class BannerFormHandler(MainHandler):
         }
 
         self.render('banner_form.html', data)
-    
+
     def create_banner_from_form(self, form):
         team = Team.get_by_key_name(form.cleaned_data['team'])
         banner = Banner(
@@ -119,13 +135,13 @@ class BannerFormHandler(MainHandler):
             author = users.get_current_user()
         ).put()
         self.redirect('/')
-    
+
     def get(self):
         self.render_form(BannerForm())
 
     def post(self):
         form = BannerForm(self.request)
-        
+
         if form.is_valid():
             self.create_banner_from_form(form)
         else:
@@ -134,12 +150,12 @@ class BannerFormHandler(MainHandler):
 
 def main():
     logging.getLogger().setLevel(logging.DEBUG)
-    
+
     paths = [
         ('/', MainHandler),
         ('/create_banner', BannerFormHandler),
     ];
-    
+
     application = webapp.WSGIApplication(paths, debug=True)
     util.run_wsgi_app(application)
 

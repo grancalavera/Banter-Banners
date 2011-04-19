@@ -2,5 +2,24 @@
 
 {% block page_content %}
 <h1>Banter Banners</h1>
-<p><a href='{{create_banner_url}}'>Send some banter</p>
+<p><a href='{{create_banner_url}}'>Send some banter</a></p>
+
+{% if user %}
+
+    {% if banners.count %}
+        <h2>Your Banter Banners</h2>
+        {% for banner in banners %}
+        <div class="banter_banner">
+            <p>{{ banner.copy }}</p>
+            <p>Sent to: <em>{{ banner.team.name }}</em></p>
+            <p><em>{{ banner.impressions }} impressions remaining!</em></p>
+        </div>
+        <hr />
+        {% endfor %}
+    {% else %}
+        <p>You still have not created any Banter Banner!</p>
+        <p><a href="{{ create_banner_url }}">Create your first Banter Banner</a></p>
+    {% endif %}
+{% endif %}
+
 {% endblock %}
