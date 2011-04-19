@@ -3,9 +3,7 @@
 {% block page_content %}
 <h1>Send some banter</h1>
 <form action="{{ form_action }}" method="post" accept-charset="utf-8">
-<table>
-{{ form }}
-<tr><td colspan="2"><input type="submit" value="Send"></td></tr>
-</table>
+{{ form.as_p }}
+<p><input type="submit" value="Send"></p>
 </form>
 {% endblock %}

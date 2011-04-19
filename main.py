@@ -74,13 +74,14 @@ class Banner(db.Model):
 
 
 class CreateBannerForm(forms.Form):
-    TEAM_CHOICES = [('', 'Select One')]
-    TEAM_CHOICES.extend([(team.name, team.name) for team in Team.all()])
-    
     """
     A Simple form to create a Banner
     """
-    banter = forms.CharField(max_length = 140)
+
+    TEAM_CHOICES = [('', 'Select One')]
+    TEAM_CHOICES.extend([(team.name, team.name) for team in Team.all()])
+    
+    copy = forms.CharField(max_length = 140, label='Banter')
     team = forms.ChoiceField(choices = TEAM_CHOICES)
     
     
@@ -112,8 +113,10 @@ class CreateBannerHandler(MainHandler):
 class SaveBannerHandler(MainHandler):
     """Saves a banner in the datastore"""
     def post(self):
+        form = CreateBannerForm(self.request)
+        logging.info(form.is_valid())
+        
         self.redirect('/')
-
 
 def main():
     logging.getLogger().setLevel(logging.DEBUG)
