@@ -1,7 +1,7 @@
 from main import Banner, Team
 import main
 
-team = Team.get_by_key_name('Arsenal')
+team = Team.get_by_key_name('Birmingham City')
 print'Banners for the %s team' %team.name
 
 banner = main.serve_banner_for_team(team)

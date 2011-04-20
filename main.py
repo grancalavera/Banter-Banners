@@ -19,6 +19,8 @@ from google.appengine.ext.db import djangoforms
 from google.appengine.ext.webapp import util
 
 
+WARNING_THRESHOLD = 15
+
 def get_banners_for_current_user():
     banners = Banner.all()
     banners.order('-created')
@@ -43,8 +45,11 @@ def serve_banner_for_team(team):
     """
     banner = get_random_banner_for_team(team)
 
-    if banner is not None:
-        record_banner_impression(banner)
+    if banner:
+        taskqueue.add(
+            url = '/workers/record_banner_impression', 
+            params = {'key' : banner.key()}
+        )
 
     return banner
 
@@ -66,29 +71,49 @@ def get_random_banner_for_team(team):
     return banner
 
 
+def record_banner_impression(key):
+    """
+    Records (actually subtracts) a banner impression. Then adds a task to the
+    default queue to update the queue status
+    """
+    banner = Banner.get(key)
+    banner.impressions -= 1
+    banner.put()
+    taskqueue.add(url = '/workers/update_queue_status', params = {'key' : key})
+
+
+def update_queue_status_for_team(key):
+    """
+    Based on a banner key, retrieves the appropriate team and updates its queue
+    status
+    """
+    team = Banner.get(key).team
+    banners = team.banners
+    impressions_remaining = 0
+    for banner in banners: impressions_remaining += banner.impressions
+    
+    if impressions_remaining == 0:
+        handle_queue_empty_for_team(team)
+    elif impressions_remaining == WARNING_THRESHOLD:
+        handle_threshold_reached_for_team(team)
+    else:
+        logging.info('There are %i banner impressions remaining for the %s team' %(impressions_remaining, team.name))
+
+
+def handle_threshold_reached_for_team(team):
+    """
+    Handles all operations to be performed when the queue of banners for a 
+    particular team is about to be depleted
+    """
+    logging.info('The banner impressions for the %s team are running low.' %team.name)
+
+
 def handle_queue_empty_for_team(team):
     """
     Handles all operations to be performed when all the banners have run our of
     impressions
     """
-    pass
-
-
-def update_queue_status_for_team(team):
-    """
-    Gets the number of banners left in the queue and performs different actions
-    based on this number
-    """
-    pass
-
-
-def record_banner_impression(banner):
-    """
-    Records (actually subtracts) a banner impression. If the banners has no
-    impressions remaining after recording an impression, this method will
-    notify the banner queue is empty
-    """
-    pass
+    logging.info('The banner impressions for the %s team are over.' %team.name)
 
 
 class Team(db.Model):
@@ -186,7 +211,6 @@ class CreateBannerWorker(webapp.RequestHandler):
     """
     Creates a new banner in the datastore
     """
-    
     def post(self):
         team = Team.get_by_key_name(self.request.get('team'))
         
@@ -199,11 +223,20 @@ class CreateBannerWorker(webapp.RequestHandler):
 
 class RecordImpressionWorker(webapp.RequestHandler):
     """
-    Records 1 banner impression
+    A proxy to route the banner impression to the appropriate function
     """
-    
     def post(self):
-        pass
+        key = self.request.get('key')
+        db.run_in_transaction(record_banner_impression, key)
+
+
+class UpdateQueueStatusWorker(webapp.RequestHandler):
+    """
+    A proxy to rout the banner queue updating to the appropriate function
+    """
+    def post(self):
+        key = self.request.get('key')
+        update_queue_status_for_team(key)
 
 
 def main():
@@ -212,7 +245,8 @@ def main():
     paths = [
         ('/', MainHandler),
         ('/create_banner', BannerFormHandler),
-        ('/workers/record_impression', RecordImpressionWorker),
+        ('/workers/record_banner_impression', RecordImpressionWorker),
+        ('/workers/update_queue_status', UpdateQueueStatusWorker),
         ('/workers/create_banner', CreateBannerWorker)
     ];
 
@@ -222,3 +256,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+ 
