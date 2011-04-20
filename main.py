@@ -2,6 +2,7 @@
 import logging
 import os
 import random
+from exceptions import Exception
 
 # django setup
 os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'
@@ -166,6 +167,21 @@ class MainHandler(webapp.RequestHandler):
         self.response.out.write(template.render(path, template_values))
 
 
+class BannerHandler(webapp.RequestHandler):
+    def get(self):
+        team_name = self.request.get('team')
+        self.response.headers["Content-Type"] = 'text/plain'
+        
+        try:
+            team = Team.get_by_key_name(team_name)
+            logging.info(team.name)
+            banner = serve_banner_for_team(team)
+            self.response.out.write(banner.copy)
+            
+        except Exception:
+            self.response.out.write('Banter Banners!')
+
+
 class BannerFormHandler(MainHandler):
     """
     Creates a new Banner model in the datastore
@@ -244,6 +260,7 @@ def main():
 
     paths = [
         ('/', MainHandler),
+        ('/banner', BannerHandler),
         ('/create_banner', BannerFormHandler),
         ('/workers/record_banner_impression', RecordImpressionWorker),
         ('/workers/update_queue_status', UpdateQueueStatusWorker),

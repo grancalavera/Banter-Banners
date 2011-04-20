@@ -55,7 +55,7 @@ for banter in random_banter:
         copy = banter,
         team = Team.get_by_key_name('Birmingham City'),
         author_id = 'test@example.com',
-        impressions = random.randint(1, 5)
+        impressions = random.randint(5, 20)
     )
     b.put()
     print 'New banter banner'
