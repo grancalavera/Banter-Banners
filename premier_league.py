@@ -36,30 +36,32 @@ for team in teams:
     
 
 random_banter = [
-    'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla sit.',
-    'Cusce quis eros a massa varius elementum. Mauris adipiscing orci.',
-    'Cras enim lorem, ornare eget volutpat non, consequat in turpis.',
-    'Proin eleifend rutrum libero, non tristique enim sollicitudin quis.',
-    'Integer fermentum vehicula turpis, sagittis sodales lorem bibendum et.',
-    'Mauris augue libero, mollis ornare laoreet id, interdum sit amet.',
-    'Suspendisse convallis tellus et tortor egestas fringilla.',
-    'Mauris placerat ornare interdum. Cras vitae arcu sit amet diam.',
-    'Duis tempor lacus ac est varius bibendum. Vestibulum elit elit.',
-    'Vivamus nec diam fringilla augue vulputate facilisis. Nunc ac purus.'
+    'lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla sit.',
+    'cusce quis eros a massa varius elementum. Mauris adipiscing orci.',
+    'cras enim lorem, ornare eget volutpat non, consequat in turpis.',
+    'proin eleifend rutrum libero, non tristique enim sollicitudin quis.',
+    'integer fermentum vehicula turpis, sagittis sodales lorem bibendum et.',
+    'mauris augue libero, mollis ornare laoreet id, interdum sit amet.',
+    'suspendisse convallis tellus et tortor egestas fringilla.',
+    'mauris placerat ornare interdum. Cras vitae arcu sit amet diam.',
+    'duis tempor lacus ac est varius bibendum. Vestibulum elit elit.',
+    'vivamus nec diam fringilla augue vulputate facilisis. Nunc ac purus.'
 ]
 
 print ''
 
-for banter in random_banter:
-    b = Banner(
-        copy = banter,
-        team = Team.get_by_key_name('Birmingham City'),
-        author_id = 'test@example.com',
-        impressions = random.randint(5, 20)
-    )
-    b.put()
-    print 'New banter banner'
-    print 'Banter: %s' %b.copy
-    print 'Sent to: %s' %b.team.name
-    print 'Impressions left: %i' %b.impressions
+for team in teams:
+    for banter in random_banter:
+        b = Banner(
+            copy = 'The %s team is a %s' %(team, banter),
+            team = Team.get_by_key_name(team),
+            author_id = 'test@example.com',
+            impressions = random.randint(5, 20)
+        )
+        b.put()
+        print 'New banter banner'
+        print 'Banter: %s' %b.copy
+        print 'Sent to: %s' %b.team.name
+        print 'Impressions left: %i' %b.impressions
+        print ''
     print ''

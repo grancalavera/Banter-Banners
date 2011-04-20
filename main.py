@@ -39,7 +39,7 @@ def get_default_template_values(dest_url=None):
     return values
 
 
-def serve_banner_for_team(team):
+def get_banner_for_team(team):
     """
     Serves a banner. Takes care of recording the banner impression and also
     of sending default placeholder content when there are no more banners
@@ -175,7 +175,7 @@ class BannerHandler(webapp.RequestHandler):
         try:
             team = Team.get_by_key_name(team_name)
             logging.info(team.name)
-            banner = serve_banner_for_team(team)
+            banner = get_banner_for_team(team)
             self.response.out.write(banner.copy)
             
         except Exception:
