@@ -24,6 +24,21 @@ import pyamf
 
 WARNING_THRESHOLD = 15
 
+def create_banner(**kwargs):
+    """Creates a banner in the datastore"""
+    
+    team = Team.get_by_key_name(kwargs.get('team_name'))
+    
+    if not team.enabled:
+        team.enabled = True
+        team.put()
+    
+    Banner(
+        copy = kwargs.get('copy'),
+        team = team,
+        author_id = kwargs.get('author_id')
+    ).put()
+    
 
 def get_banners_for_current_user():
     banners = Banner.all()
@@ -262,14 +277,13 @@ class CreateBannerWorker(webapp.RequestHandler):
     """
     Creates a new banner in the datastore
     """
+    
     def post(self):
-        team = Team.get_by_key_name(self.request.get('team'))
-        
-        Banner(
+        create_banner(
+            team_name = self.request.get('team'),
             copy = self.request.get('copy'),
-            team = team,
             author_id = self.request.get('author')
-        ).put()
+        )
 
 
 class UpdateQueueStatusWorker(webapp.RequestHandler):

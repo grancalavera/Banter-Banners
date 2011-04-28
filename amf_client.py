@@ -34,8 +34,8 @@ teams = [
     'Wolverhampton Wanderers',
 ]
 
-for team in teams:
-    for i in range(0, 5):
+for i in range(0, 3):
+    for team in teams:
         service.getBanner(team)
 
 print('Done.');
