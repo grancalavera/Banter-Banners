@@ -30,7 +30,7 @@ teams = [
 ]
 
 for team in teams:
-    t = Team(name=team, key_name=team)
+    t = Team(name=team, key_name=team, enabled=True)
     t.put()
     print 'Team with name \"%s\" created.' %t.name
     
@@ -49,7 +49,7 @@ for team in teams:
             copy = banter %team,
             team = Team.get_by_key_name(team),
             author_id = 'test@example.com',
-            impressions = random.randint(5, 20)
+            impressions = 1
         )
         b.put()
         print 'New banter banner'

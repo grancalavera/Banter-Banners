@@ -50,10 +50,7 @@ def get_banner_for_team(team):
     banner = get_random_banner_for_team(team)
 
     if banner:
-        taskqueue.add(
-            url = '/workers/record_banner_impression', 
-            params = {'key' : banner.key()}
-        )
+        record_banner_impression(banner.key())
 
     return banner
 
@@ -92,6 +89,9 @@ def update_queue_status_for_team(key):
     status
     """
     team = Banner.get(key).team
+    if not team.enabled:
+        return
+    
     banners = team.banners
     impressions_remaining = 0
     for banner in banners: impressions_remaining += banner.impressions
@@ -100,8 +100,6 @@ def update_queue_status_for_team(key):
         handle_queue_empty_for_team(team)
     elif impressions_remaining == WARNING_THRESHOLD:
         handle_threshold_reached_for_team(team)
-    else:
-        logging.info('There are %i banner impressions remaining for the %s team' %(impressions_remaining, team.name))
 
 
 def handle_threshold_reached_for_team(team):
@@ -117,6 +115,10 @@ def handle_queue_empty_for_team(team):
     Handles all operations to be performed when all the banners have run our of
     impressions
     """
+    logging.info('%s disabled' %team.name)
+    team.enabled = False;
+    team.put();
+    
     logging.info('The banner impressions for the %s team are over.' %team.name)
 
 
@@ -141,7 +143,7 @@ def amf_get_banner(team_name):
         return banner.copy
         
     except Exception:
-        return None
+        return 'Banter Banners!'
     
 
 class Team(db.Model):
@@ -270,15 +272,6 @@ class CreateBannerWorker(webapp.RequestHandler):
         ).put()
 
 
-class RecordImpressionWorker(webapp.RequestHandler):
-    """
-    A proxy to route the banner impression to the appropriate function
-    """
-    def post(self):
-        key = self.request.get('key')
-        db.run_in_transaction(record_banner_impression, key)
-
-
 class UpdateQueueStatusWorker(webapp.RequestHandler):
     """
     A proxy to rout the banner queue updating to the appropriate function
@@ -313,7 +306,6 @@ def main():
         ('/banner', BannerHandler),
         ('/create_banner', BannerFormHandler),
         ('/flash_banner', FlashBannerHandler),
-        ('/workers/record_banner_impression', RecordImpressionWorker),
         ('/workers/update_queue_status', UpdateQueueStatusWorker),
         ('/workers/create_banner', CreateBannerWorker),
         ('/', IndexHandler),

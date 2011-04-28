@@ -11,4 +11,31 @@ path = 'http://localhost:8080/amf'
 gw = RemotingService(path, logger=logging)
 service = gw.getService('banter_banners')
 
-print service.getBanner('Bolton Wanderers')
+teams = [
+    'Arsenal',
+    'Aston Villa',
+    'Birmingham City',
+    'Blackburn Rovers',
+    'Blackpool',
+    'Bolton Wanderers',
+    'Chelsea',
+    'Everton',
+    'Fulham',
+    'Liverpool',
+    'Manchester City',
+    'Manchester United',
+    'Newcastle United',
+    'Stoke City',
+    'Sunderland',
+    'Tottenham Hotspur',
+    'West Bromwich Albion',
+    'West Ham United',
+    'Wigan Athletic',
+    'Wolverhampton Wanderers',
+]
+
+for team in teams:
+    for i in range(0, 5):
+        service.getBanner(team)
+
+print('Done.');
