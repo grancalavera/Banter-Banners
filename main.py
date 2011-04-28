@@ -18,9 +18,12 @@ from google.appengine.ext import db
 from google.appengine.ext import webapp
 from google.appengine.ext.db import djangoforms
 from google.appengine.ext.webapp import util
+from pyamf.remoting.gateway.google import WebAppGateway
+import pyamf
 
 
 WARNING_THRESHOLD = 15
+
 
 def get_banners_for_current_user():
     banners = Banner.all()
@@ -117,6 +120,30 @@ def handle_queue_empty_for_team(team):
     logging.info('The banner impressions for the %s team are over.' %team.name)
 
 
+"""
+AMF services
+"""
+
+def amf_echo(data):
+    """
+    Echoes the data back to the client
+    """
+    return data
+
+
+def amf_get_banner(team_name):
+    """
+    AMF proxy for the get_banner_for_team function
+    """
+    try:
+        team = Team.get_by_key_name(team_name)
+        banner = get_banner_for_team(team)
+        return banner.copy
+        
+    except Exception:
+        return None
+    
+
 class Team(db.Model):
     """
     BanterTarget representation
@@ -149,6 +176,17 @@ class BannerForm(forms.Form):
 
 
 class MainHandler(webapp.RequestHandler):
+    def render(self, template_file, template_values):
+        """
+        Convenience method to render templates
+        """
+        template_values.update(get_default_template_values(self.request.path))
+        path = os.path.join(os.path.dirname(__file__), 'templates/%s' %template_file)
+        template_render = template.render(path, template_values)
+        self.response.out.write(template_render)
+
+
+class IndexHandler(MainHandler):
     def get(self):
         data = {}
         data['create_banner_url'] = '/create_banner'
@@ -158,14 +196,6 @@ class MainHandler(webapp.RequestHandler):
 
         self.render('index.html', data)
 
-    def render(self, template_file, template_values):
-        """
-        Convenience method to render templates
-        """
-        template_values.update(get_default_template_values(self.request.path))
-        path = os.path.join(os.path.dirname(__file__), 'templates/%s' %template_file)
-        self.response.out.write(template.render(path, template_values))
-
 
 class BannerHandler(webapp.RequestHandler):
     def get(self):
@@ -174,12 +204,15 @@ class BannerHandler(webapp.RequestHandler):
         
         try:
             team = Team.get_by_key_name(team_name)
-            logging.info(team.name)
             banner = get_banner_for_team(team)
             self.response.out.write(banner.copy)
             
         except Exception:
             self.response.out.write('Banter Banners!')
+
+class FlashBannerHandler(MainHandler):
+    def get(self):
+        self.render('flash_banner.html', {})
 
 
 class BannerFormHandler(MainHandler):
@@ -256,15 +289,35 @@ class UpdateQueueStatusWorker(webapp.RequestHandler):
 
 
 def main():
+    debug = True
+    
     logging.getLogger().setLevel(logging.DEBUG)
+    
+    amf_services = {
+        'banter_banners.echo' : amf_echo,
+        'banter_banners.getBanner' : amf_get_banner,
+    }
+    
+    AMF_NAMESPACE = 'com.razorfish.banterbanners.models'
+    pyamf.register_class(Banner, '%s.Banner' % AMF_NAMESPACE)
+    pyamf.register_class(Team, '%s.Team' % AMF_NAMESPACE)
+    
+    amf_gateway = WebAppGateway(
+        amf_services, 
+        logger = logging,
+        debug = debug
+    )
 
     paths = [
-        ('/', MainHandler),
+        ('/amf', amf_gateway),
         ('/banner', BannerHandler),
         ('/create_banner', BannerFormHandler),
+        ('/flash_banner', FlashBannerHandler),
         ('/workers/record_banner_impression', RecordImpressionWorker),
         ('/workers/update_queue_status', UpdateQueueStatusWorker),
-        ('/workers/create_banner', CreateBannerWorker)
+        ('/workers/create_banner', CreateBannerWorker),
+        ('/', IndexHandler),
+        ('/.*', MainHandler),
     ];
 
     application = webapp.WSGIApplication(paths, debug=True)

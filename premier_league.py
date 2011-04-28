@@ -36,16 +36,9 @@ for team in teams:
     
 
 random_banter = [
-    'lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla sit.',
-    'cusce quis eros a massa varius elementum. Mauris adipiscing orci.',
-    'cras enim lorem, ornare eget volutpat non, consequat in turpis.',
-    'proin eleifend rutrum libero, non tristique enim sollicitudin quis.',
-    'integer fermentum vehicula turpis, sagittis sodales lorem bibendum et.',
-    'mauris augue libero, mollis ornare laoreet id, interdum sit amet.',
-    'suspendisse convallis tellus et tortor egestas fringilla.',
-    'mauris placerat ornare interdum. Cras vitae arcu sit amet diam.',
-    'duis tempor lacus ac est varius bibendum. Vestibulum elit elit.',
-    'vivamus nec diam fringilla augue vulputate facilisis. Nunc ac purus.'
+    '%s fans should better find a new team.',
+    'I can\'t understand how %s call themselves a team.',
+    'A footbal team? I thought you said %s.',
 ]
 
 print ''
@@ -53,7 +46,7 @@ print ''
 for team in teams:
     for banter in random_banter:
         b = Banner(
-            copy = 'The %s team is a %s' %(team, banter),
+            copy = banter %team,
             team = Team.get_by_key_name(team),
             author_id = 'test@example.com',
             impressions = random.randint(5, 20)
