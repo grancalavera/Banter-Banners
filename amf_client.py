@@ -7,7 +7,8 @@ logging.basicConfig(
     format='%(asctime)s %(levelname)-5.5s [%(name)s] %(message)s'
 )
 
-path = 'http://localhost:8080/amf'
+path = 'http://grancalavera-sandbox.appspot.com/amf'
+# path = 'http://localhost:8080/amf'
 gw = RemotingService(path, logger=logging)
 service = gw.getService('banter_banners')
 
@@ -34,7 +35,7 @@ teams = [
     'Wolverhampton Wanderers',
 ]
 
-for i in range(0, 3):
+for i in range(0, 250):
     for team in teams:
         service.getBanner(team)
 

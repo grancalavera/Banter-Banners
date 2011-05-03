@@ -95,7 +95,9 @@ def record_banner_impression(key):
     banner = Banner.get(key)
     banner.impressions -= 1
     banner.put()
-    taskqueue.add(url = '/workers/update_queue_status', params = {'key' : key})
+    # do this here, not in the queue
+    # taskqueue.add(url = '/workers/update_queue_status', params = {'key' : key})
+    update_queue_status_for_team(key)
 
 
 def update_queue_status_for_team(key):

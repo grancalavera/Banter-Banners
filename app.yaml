@@ -1,10 +1,7 @@
-application: banterbanners
+application: grancalavera-sandbox
 version: 1
 runtime: python
 api_version: 1
-
-builtins:
-- remote_api: on
 
 handlers:
 
@@ -15,5 +12,13 @@ handlers:
   script: main.py
   login: required
 
+- url: /populate
+  script: populate.py
+  login: admin
+
 - url: .*
   script: main.py
+
+builtins:
+- datastore_admin: on
+- remote_api: on

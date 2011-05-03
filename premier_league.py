@@ -49,7 +49,7 @@ for team in teams:
             copy = banter %team,
             team = Team.get_by_key_name(team),
             author_id = 'test@example.com',
-            impressions = 1
+            impressions = 5
         )
         b.put()
         print 'New banter banner'
